@@ -1,0 +1,36 @@
+{
+  "name": "@recogito/plugin-revisions",
+  "version": "0.1.0",
+  "description": "A plugin that adds basic annotation revision functionality to Recogito Studio",
+  "homepage": "https://github.com/recogito/plugin-revisions#readme",
+  "bugs": {
+    "url": "https://github.com/recogito/plugin-revisions/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/recogito/plugin-revisions.git"
+  },
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && npm run copy-files",
+    "copy-files": "copyfiles -u 1 \"src/extensions/**/*.css\" \"src/extensions/**/*.jpg\" \"src/extensions/**/*.png\" dist"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "astro": "^5.7.6",
+    "copyfiles": "^2.4.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@recogito/studio-sdk": "^0.5.1"
+  }
+}
