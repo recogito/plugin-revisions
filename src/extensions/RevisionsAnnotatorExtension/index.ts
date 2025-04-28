@@ -1,1 +1,1 @@
-export * from './RevisionsAnnotatorPlugin';
+export * from './RevisionsAnnotatorExtension';
