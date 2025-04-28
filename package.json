@@ -20,6 +20,11 @@
     "build": "tsc && npm run copy-files",
     "copy-files": "copyfiles -u 1 \"src/extensions/**/*.css\" \"src/extensions/**/*.jpg\" \"src/extensions/**/*.png\" dist"
   },
+  "exports": {
+    ".": "./dist/index.js",
+    "./RevisionsAnnotatorPlugin": "./dist/extensions/RevisionsAnnotatorExtension/index.js",
+    "./RevisionsEditorExtension": "./dist/extensions/RevisionsEditorExtension/index.js"
+  },
   "devDependencies": {
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",
@@ -31,6 +36,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@recogito/studio-sdk": "^0.5.1"
+    "@annotorious/react": "^3.3.6",
+    "@phosphor-icons/react": "^2.1.7",
+    "@recogito/studio-sdk": "file:../recogito-studio-sdk",
+    "uuid": "^11.1.0"
   }
 }
