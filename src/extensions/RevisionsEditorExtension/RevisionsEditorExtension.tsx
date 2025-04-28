@@ -13,6 +13,9 @@ import './RevisionsEditorExtension.css';
 
 export const RevisionsEditorExtension = (props: AnnotationEditorExtensionProps ) => {
 
+  // Early return if this is NOT a read-only annotation
+  if (!props.isReadOnly) return null;
+
   const anno = useAnnotator<AnnotoriousOpenSeadragonAnnotator>();
 
   const activeLayer = useMemo(() => {
