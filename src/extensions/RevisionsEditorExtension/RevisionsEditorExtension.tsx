@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { PencilLine } from '@phosphor-icons/react';
 import { AnnotationEditorExtensionProps, SupabaseAnnotation } from '@recogito/studio-sdk';
 import { useAnnotator } from '@annotorious/react';
 import type { 
@@ -9,7 +10,6 @@ import type {
 } from '@annotorious/react';
 
 import './RevisionsEditorExtension.css';
-import { PencilLine } from '@phosphor-icons/react';
 
 export const RevisionsEditorExtension = (props: AnnotationEditorExtensionProps ) => {
 

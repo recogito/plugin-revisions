@@ -22,7 +22,7 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./RevisionsAnnotatorPlugin": "./dist/extensions/RevisionsAnnotatorExtension/index.js",
+    "./RevisionsAnnotatorExtension": "./dist/extensions/RevisionsAnnotatorExtension/index.js",
     "./RevisionsEditorExtension": "./dist/extensions/RevisionsEditorExtension/index.js"
   },
   "devDependencies": {
