@@ -162,7 +162,11 @@ export const mountPlugin = (anno: Annotator) => {
       const restorableOriginals = filteredCorrections
         .map(a => isCorrectionTo.get(a.id)!)
         .filter(Boolean)
-        .filter(filter);
+        .filter(filter)
+        // Edge case. The correction could already have been filtered out
+        // in the previous filter state. In this case, the original is already 
+        // restored. Bulk-adding it again would throw an error!
+        .filter(a => !store.getAnnotation(a.id));
 
       _bulkAddAnnotations(restorableOriginals, false, Origin.REMOTE);
     } else {
