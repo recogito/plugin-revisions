@@ -1,4 +1,4 @@
-import type { Annotation, Annotator } from '@annotorious/annotorious';
+import type { Annotation, Annotator, Filter } from '@annotorious/annotorious';
 import { Origin } from '@annotorious/react';
 
 // Checks if this annotation is a correction
@@ -26,7 +26,7 @@ export const mountPlugin = (anno: Annotator) => {
   // Keeps track of annotations that have corrections (by ID)
   const hasCorrection = new Set<string>();
 
-  // Correction annotation ID -> annotation it's a correction to
+  // Correction annotation ID -> annotation it's a correction of
   const isCorrectionTo = new Map<string, Annotation>();
 
   const _addAnnotation = store.addAnnotation;
@@ -34,11 +34,16 @@ export const mountPlugin = (anno: Annotator) => {
   const _bulkDeleteAnnotations = store.bulkDeleteAnnotations;
   const _deleteAnnotation = store.deleteAnnotation;
 
+  const _setFilter = anno.setFilter;
+
+  // Utility method
+  (anno as any).hasCorrection = (annotation: Partial<Annotation>) => 
+    hasCorrection.has(annotation.id!)
+
   // Monkey-patch `store.bulkAddAnnotations`
   // - track corrections 
   // - discard annotations that have corrections
   // - delete annotations if this batch includes corrections to them
-
   store.bulkAddAnnotations = (annotations: Partial<Annotation>[], replace?: boolean, origin?: Origin) => {
     // Annotations in this batch that are themselves corrections to other annotations
     const corrections = annotations.filter(isCorrection);
@@ -46,10 +51,9 @@ export const mountPlugin = (anno: Annotator) => {
     // Record mapping between corrections and corrected annotations
     corrections.forEach(a => {
       const correctedId = corrects(a)!;
-
       hasCorrection.add(correctedId);
 
-      // Note that corrected annotations may arrive AFTER their corrections!
+      // Note that corrected annotations may arrive BEFORE or AFTER their corrections!
       const correctedAnnotation = store.getAnnotation(correctedId);
       if (a.id && correctedAnnotation) {
         isCorrectionTo.set(a.id, correctedAnnotation);
@@ -66,9 +70,11 @@ export const mountPlugin = (anno: Annotator) => {
       console.log('Discarding the following corrected annotations from view:', corrected);
     }
 
-    // Corrected annotations might arrivate AFTER their corrections!
-    // Keep track of this case so we can restore later. The implementation
-    // below is a bit brute-force, looping through all annotations in 
+    _bulkAddAnnotations(toAdd, replace, origin);
+
+    // Corrected annotations might arrivate AFTER their corrections, or in 
+    // the same batch! Keep track of these cases so we can restore later. The 
+    // implementation below is a bit brute-force, looping through all annotations in 
     // the annotator. But it will normally only happen ONCE, after the  
     // embedded annotations have loaded.
     const corrected = annotations.filter(a => hasCorrection.has(a.id!));
@@ -81,15 +87,12 @@ export const mountPlugin = (anno: Annotator) => {
           isCorrectionTo.set(correction.id, corrected as Annotation);
       });
     }
-
-    _bulkAddAnnotations(toAdd, replace, origin);
   }
 
   // Monkey-patch `store.addAnnotation`
   // - track corrections 
   // - discard the annotation if it has a correction
   // - if this is a correction, delete the annotation it corrects
-
   store.addAnnotation = (annotation: Partial<Annotation>, origin?: Origin) => {
     // Don't add this annotation if there is already a correction for it
     if (hasCorrection.has(annotation.id!)) return;
@@ -100,6 +103,7 @@ export const mountPlugin = (anno: Annotator) => {
 
       const correctedAnnotation = store.getAnnotation(correctedId);
       if (annotation.id && correctedAnnotation) {
+        hasCorrection.add(correctedAnnotation.id);
         isCorrectionTo.set(annotation.id, correctedAnnotation);
         _deleteAnnotation(correctedId, Origin.REMOTE);
       }
@@ -118,9 +122,11 @@ export const mountPlugin = (anno: Annotator) => {
     if (correctedAnnotation) {
       // Restore original that this annotation was a correction to
       _addAnnotation(correctedAnnotation, Origin.REMOTE);
+      hasCorrection.delete(correctedAnnotation.id);
     }
 
     _deleteAnnotation(annotationOrId, origin);
+    isCorrectionTo.delete(id);
   }
 
   // Monkey-patch `store.bulkDeleteAnnotations`
@@ -130,11 +136,41 @@ export const mountPlugin = (anno: Annotator) => {
     const ids = annotationsOrIds.map(arg => typeof arg === 'string' ? arg : arg.id);
 
     // Ids of annotations in this batch that correct other annotations
-    const corrections = ids.map(id => isCorrectionTo.get(id)!).filter(Boolean);
-    if (corrections.length > 0)
-      _bulkAddAnnotations(corrections, false, Origin.REMOTE)
+    const correctedAnnotations = ids.map(id => isCorrectionTo.get(id)!).filter(Boolean);
+    if (correctedAnnotations.length > 0) {
+      _bulkAddAnnotations(correctedAnnotations, false, Origin.REMOTE);
+      correctedAnnotations.forEach(a => hasCorrection.delete(a.id));
+    }
     
     _bulkDeleteAnnotations(annotationsOrIds, origin);
+    ids.forEach(id => isCorrectionTo.delete(id));
+  }
+
+  // Monkey-patch `anno.setFilter`. If the filter matches 
+  // annotations that are corrections to other annotations (which are not filtered!)
+  // then restore those.
+  anno.setFilter = (filter: Filter | undefined) => {
+    if (filter) { 
+      // All current corrections
+      const corrections = anno.getAnnotations().filter(isCorrection);
+    
+      // Corrections that get filtered out by the new filter
+      const filteredCorrections = corrections.filter(a => !filter(a));
+
+      // For each correction that is now filtered out, check if the original is visible
+      // in the current filter setting
+      const restorableOriginals = filteredCorrections
+        .map(a => isCorrectionTo.get(a.id)!)
+        .filter(Boolean)
+        .filter(filter);
+
+      _bulkAddAnnotations(restorableOriginals, false, Origin.REMOTE);
+    } else {
+      // Remove all annotations that have corrections
+      _bulkDeleteAnnotations([...hasCorrection], Origin.REMOTE)
+    }
+
+    _setFilter(filter);
   }
 
 }

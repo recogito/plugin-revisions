@@ -18,6 +18,11 @@ export const RevisionsEditorExtension = (props: AnnotationEditorExtensionProps )
 
   const anno = useAnnotator<AnnotoriousOpenSeadragonAnnotator>();
 
+  const annotation = useMemo(() => {
+    const selected = anno.getSelected();
+    if (selected.length === 1) return selected[0] as SupabaseAnnotation;
+  }, []);
+
   const activeLayer = useMemo(() => {
     if (!props.layers) return;
 
@@ -29,12 +34,10 @@ export const RevisionsEditorExtension = (props: AnnotationEditorExtensionProps )
     // Should never happen
     if (!activeLayer) return;
 
-    const selected = anno.getSelected();
-
     // Should never happen
-    if (selected.length !== 1) return;
+    if (!annotation) return;
 
-    const { id: origId, bodies, target } = selected[0] as SupabaseAnnotation;
+    const { id: origId, bodies, target } = annotation;
 
     const id = uuidv4(); 
 
@@ -71,7 +74,12 @@ export const RevisionsEditorExtension = (props: AnnotationEditorExtensionProps )
     anno.setSelected(id);
   }
 
-  return (
+  // Note: an annotation may be visible to the user, even if it has a 
+  // correction! (Because of filter settings!) In this case, we don't 
+  // want to show the editor extension.
+  const canMakeEditable = annotation && !(anno as any).hasCorrection(annotation);
+
+  return canMakeEditable ? (
     <div className="create-revision">
       <button onClick={onCloneToActiveLayer}>
         <PencilLine size={18} /> Make Editable
@@ -80,6 +88,6 @@ export const RevisionsEditorExtension = (props: AnnotationEditorExtensionProps )
         Creates an editable copy, hiding the original annotation.
       </p>
     </div>
-  )
+  ) : null;
 
 }
