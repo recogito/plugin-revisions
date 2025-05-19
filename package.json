@@ -1,6 +1,6 @@
 {
   "name": "@recogito/plugin-revisions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A plugin that adds basic annotation revision functionality to Recogito Studio",
   "homepage": "https://github.com/recogito/plugin-revisions#readme",
   "bugs": {
