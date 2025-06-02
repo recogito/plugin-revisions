@@ -1,8 +1,8 @@
 # Revisions Plugin
 
-![A screenshot of the Recogito Revisions plugin](/screenshot.png "A screenshot of the Recogito Revisions plugin")
-
 A plugin for Recogito Studio that adds lightweight revision capabilities to the annotation workflow.
+
+![A screenshot of the Recogito Revisions plugin](/screenshot.png "A screenshot of the Recogito Revisions plugin")
 
 ## Usage
 
