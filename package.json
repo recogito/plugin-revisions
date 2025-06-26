@@ -18,10 +18,11 @@
   ],
   "scripts": {
     "build": "tsc && npm run copy-files",
-    "copy-files": "copyfiles -u 1 \"src/extensions/**/*.css\" \"src/extensions/**/*.jpg\" \"src/extensions/**/*.png\" dist"
+    "copy-files": "copyfiles -u 1 \"src/**/*.css\" \"src/**/*.jpg\" \"src/**/*.png\" dist"
   },
   "exports": {
     ".": "./dist/index.js",
+    "./thumbnail.jpg": "./dist/assets/thumbnail.jpg",
     "./RevisionsAnnotatorExtension": "./dist/extensions/RevisionsAnnotatorExtension/index.js",
     "./RevisionsEditorExtension": "./dist/extensions/RevisionsEditorExtension/index.js"
   },

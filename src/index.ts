@@ -13,6 +13,8 @@ const RevisionsPlugin: Plugin = {
 
   homepage: 'https://www.performantsoftware.com/',
 
+  thumbnail: 'thumbnail.jpg',
+
   extensions: [{
     name: 'revisions-annotator-extension',
     component_name: 'RevisionsAnnotatorExtension',
